@@ -1,6 +1,7 @@
-import 'package:chatapp/constats/colors.dart';
+import 'package:chatapp/constats/constant.dart';
 import 'package:chatapp/helpers/show_Snack_Bar.dart';
 import 'package:chatapp/screens/Signup_screen.dart';
+import 'package:chatapp/screens/chat_screen.dart';
 import 'package:chatapp/widgets/Button.dart';
 import 'package:chatapp/widgets/TextField.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -26,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
     return ModalProgressHUD(
       inAsyncCall: isLoading,
       child: Scaffold(
-        backgroundColor: MyColors.primaryColor,
+        backgroundColor: KprimaryColor,
         appBar: AppBar(),
         body: Form(
           key: formKey,
@@ -36,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: 90,
               ),
               Image.asset(
-                'assets/images/scholar.png',
+                scholarImage,
                 height: 100,
               ),
               Center(
@@ -91,8 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                                   isLoading = true;
                                   setState(() {});
                                   await login_User(context);
-                                  showSnackbar(
-                                      context, 'Registerd successfully');
+                                  Navigator.pushNamed(context, ChatPage.id);
                                 } on FirebaseAuthException catch (ex) {
                                   if (ex.code == 'user-not-found') {
                                     showSnackbar(context,

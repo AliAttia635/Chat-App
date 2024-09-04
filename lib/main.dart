@@ -1,5 +1,6 @@
 import 'package:chatapp/firebase_options.dart';
 import 'package:chatapp/screens/Signup_screen.dart';
+import 'package:chatapp/screens/chat_screen.dart';
 import 'package:chatapp/screens/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
       routes: {
         LoginPage.id: (context) => LoginPage(),
         SignUpPage.id: (context) => SignUpPage(),
+        ChatPage.id: (context) => ChatPage(),
       },
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
@@ -28,7 +30,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,
       ),
-      initialRoute: 'LoginPage',
+      initialRoute: LoginPage.id,
     );
   }
 }
