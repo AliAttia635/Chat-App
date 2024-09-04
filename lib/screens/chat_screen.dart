@@ -4,24 +4,17 @@ import 'package:chatapp/widgets/ChatBubble.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ChatPage extends StatefulWidget {
+class ChatPage extends StatelessWidget {
   ChatPage({super.key});
   static String id = "ChatPage";
-
-  @override
-  State<ChatPage> createState() => _ChatPageState();
-}
-
-class _ChatPageState extends State<ChatPage> {
   TextEditingController textController = TextEditingController();
-
   CollectionReference messages =
       FirebaseFirestore.instance.collection(KcollectionMessages);
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<QuerySnapshot>(
-        future: messages.get(),
+    return StreamBuilder<QuerySnapshot>(
+        stream: messages.orderBy(KcreatedAt).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             List<MessageModel> messagesList = [];
@@ -65,10 +58,10 @@ class _ChatPageState extends State<ChatPage> {
                       controller: textController,
                       onSubmitted: (data) {
                         messages.add({
-                          'text': data,
+                          Kmessage: data,
+                          KcreatedAt: DateTime.now(),
                         });
                         textController.clear();
-                        setState(() {});
                       },
                       decoration: InputDecoration(
                         hintText: "Send Message",
