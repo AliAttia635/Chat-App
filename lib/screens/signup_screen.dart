@@ -30,7 +30,9 @@ class _SignUpPageState extends State<SignUpPage> {
       inAsyncCall: isLoading,
       child: Scaffold(
         backgroundColor: Color(0xff2b475E),
-        appBar: AppBar(),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+        ),
         body: Form(
           key: formKey,
           child: ListView(
@@ -70,10 +72,12 @@ class _SignUpPageState extends State<SignUpPage> {
                       Padding(
                         padding: EdgeInsets.all(6.0),
                         child: CustomFormTextField(
-                            hint: "Email",
-                            onChange: (data) {
-                              email = data;
-                            }),
+                          hint: "Email",
+                          onChange: (data) {
+                            email = data;
+                          },
+                          isPassword: false,
+                        ),
                       ),
                       Padding(
                         padding: EdgeInsets.all(6.0),
@@ -82,6 +86,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           onChange: (data) {
                             password = data;
                           },
+                          isPassword: true,
                         ),
                       ),
                       Padding(
@@ -94,7 +99,8 @@ class _SignUpPageState extends State<SignUpPage> {
                                   isLoading = true;
                                   setState(() {});
                                   await register_user(context);
-                                  Navigator.pushNamed(context, ChatPage.id);
+                                  Navigator.pushNamed(context, ChatPage.id,
+                                      arguments: email);
                                 } on FirebaseAuthException catch (e) {
                                   if (e.code == 'weak-password') {
                                     showSnackbar(context,

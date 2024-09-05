@@ -1,20 +1,25 @@
 import 'package:chatapp/constats/constant.dart';
 import 'package:chatapp/models/message_model.dart';
 import 'package:chatapp/widgets/ChatBubble.dart';
+import 'package:chatapp/widgets/ChatBubbleForFirend.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatPage extends StatelessWidget {
   ChatPage({super.key});
   static String id = "ChatPage";
+
+  final _controller = ScrollController();
+
   TextEditingController textController = TextEditingController();
   CollectionReference messages =
       FirebaseFirestore.instance.collection(KcollectionMessages);
 
   @override
   Widget build(BuildContext context) {
+    var email = ModalRoute.of(context)!.settings.arguments;
     return StreamBuilder<QuerySnapshot>(
-        stream: messages.orderBy(KcreatedAt).snapshots(),
+        stream: messages.orderBy(KcreatedAt, descending: true).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             List<MessageModel> messagesList = [];
@@ -45,11 +50,16 @@ class ChatPage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ListView.builder(
+                        reverse: true,
+                        controller: _controller,
                         itemCount: messagesList.length,
                         itemBuilder: (context, index) {
-                          return CustomChatBubble(
-                            message: messagesList[index],
-                          );
+                          return messagesList[index].id == email
+                              ? CustomChatBubble(
+                                  messageModel: messagesList[index],
+                                )
+                              : ChatBubbleForFriend(
+                                  messageModel: messagesList[index]);
                         }),
                   ),
                   Padding(
@@ -60,8 +70,14 @@ class ChatPage extends StatelessWidget {
                         messages.add({
                           Kmessage: data,
                           KcreatedAt: DateTime.now(),
+                          'id': email,
                         });
                         textController.clear();
+                        _controller.animateTo(
+                          0,
+                          duration: Duration(seconds: 2),
+                          curve: Curves.fastOutSlowIn,
+                        );
                       },
                       decoration: InputDecoration(
                         hintText: "Send Message",

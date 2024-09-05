@@ -40,8 +40,8 @@ class _LoginPageState extends State<LoginPage> {
                 scholarImage,
                 height: 100,
               ),
-              Center(
-                child: const Text(
+              const Center(
+                child: Text(
                   "Scholar Chat",
                   style: TextStyle(
                       fontSize: 26,
@@ -68,10 +68,12 @@ class _LoginPageState extends State<LoginPage> {
                       Padding(
                         padding: EdgeInsets.all(6.0),
                         child: CustomFormTextField(
-                            hint: "Email",
-                            onChange: (data) {
-                              email = data;
-                            }),
+                          hint: "Email",
+                          onChange: (data) {
+                            email = data;
+                          },
+                          isPassword: false,
+                        ),
                       ),
                       Padding(
                         padding: EdgeInsets.all(6.0),
@@ -80,6 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                           onChange: (data) {
                             password = data;
                           },
+                          isPassword: true,
                         ),
                       ),
                       Padding(
@@ -92,7 +95,8 @@ class _LoginPageState extends State<LoginPage> {
                                   isLoading = true;
                                   setState(() {});
                                   await login_User(context);
-                                  Navigator.pushNamed(context, ChatPage.id);
+                                  Navigator.pushNamed(context, ChatPage.id,
+                                      arguments: email);
                                 } on FirebaseAuthException catch (ex) {
                                   if (ex.code == 'user-not-found') {
                                     showSnackbar(context,
