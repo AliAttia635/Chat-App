@@ -16,18 +16,28 @@ class CustomChatBubble extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: EdgeInsets.all(16),
-        decoration: const BoxDecoration(
+        padding: messageModel.message.isEmpty ? null : EdgeInsets.all(16),
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(27),
               topRight: Radius.circular(27),
               bottomLeft: Radius.circular(27)),
-          color: KprimaryColor,
+          color: messageModel.message.isEmpty ? Colors.black : KprimaryColor,
         ),
-        child: Text(
-          messageModel.message,
-          style: TextStyle(color: Colors.white),
-        ),
+        child: messageModel.message.isEmpty
+            ? messageModel.imageFileUrl.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: Image.network(
+                      messageModel.imageFileUrl,
+                      width: 250,
+                    ),
+                  )
+                : Container()
+            : Text(
+                messageModel.message,
+                style: TextStyle(color: Colors.white),
+              ),
       ),
     );
   }
