@@ -162,14 +162,11 @@ class _ChatPageState extends State<ChatPage> {
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.mic, color: KprimaryColor),
-                            SizedBox(width: 5),
                             IconButton(
                               onPressed: pickImage,
                               icon:
                                   Icon(Icons.attach_file, color: KprimaryColor),
                             ),
-                            SizedBox(width: 5),
                             IconButton(
                               onPressed: isButtonDisabled
                                   ? null
