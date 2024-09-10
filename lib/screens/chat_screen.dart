@@ -31,11 +31,14 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+
     // Add a listener to the textController to monitor changes
     textController.addListener(() {
       setState(() {
         // Enable/Disable button based on the text input and image status
-        isButtonDisabled = textController.text.isEmpty && imageUrl.isEmpty;
+        isButtonDisabled = textController.text.isEmpty &&
+            imageUrl.isEmpty &&
+            _pickedFile == null;
       });
     });
   }
@@ -46,28 +49,26 @@ class _ChatPageState extends State<ChatPage> {
           await ImagePicker().pickImage(source: ImageSource.gallery);
       if (pickedFile == null) return;
 
-      String uniqueImageFileName =
-          DateTime.now().microsecondsSinceEpoch.toString();
-
-      //step 2 : upload to firebase storage
-      // get a refrence to storage root
-      Reference referenceRoot = FirebaseStorage.instance.ref();
-      Reference referenceDirImages = referenceRoot.child('images');
-
-      //create a refrence for the image to be stored
-      Reference referenceImageToUpload =
-          referenceDirImages.child(uniqueImageFileName);
-
-      // store the file
-      await referenceImageToUpload.putFile(File(pickedFile.path));
-
-      // success: get the download URL
-      imageUrl = await referenceImageToUpload.getDownloadURL();
-
-      // Update the button state after picking an image
       setState(() {
-        isButtonDisabled = textController.text.isEmpty && imageUrl.isEmpty;
+        _pickedFile = File(pickedFile.path); // Set the picked file for preview
+        isButtonDisabled = textController.text.isEmpty &&
+            _pickedFile == null; // Update button state
       });
+
+      // If an image is selected, upload it now
+      if (_pickedFile != null) {
+        String uniqueImageFileName =
+            DateTime.now().microsecondsSinceEpoch.toString();
+        Reference referenceRoot = FirebaseStorage.instance.ref();
+        Reference referenceDirImages = referenceRoot.child('images');
+        Reference referenceImageToUpload =
+            referenceDirImages.child(uniqueImageFileName);
+
+        await referenceImageToUpload.putFile(_pickedFile!);
+        imageUrl = await referenceImageToUpload.getDownloadURL();
+      }
+
+      // If you want to upload the image later after pressing the send button, move the upload logic to the send button's onPressed
     } catch (e) {
       log(e.toString());
     }
@@ -115,6 +116,35 @@ class _ChatPageState extends State<ChatPage> {
                       },
                     ),
                   ),
+                  if (_pickedFile != null)
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Stack(
+                        children: [
+                          Image.file(
+                            _pickedFile!,
+                            height: 150,
+                            width: 250,
+                            fit: BoxFit.cover,
+                          ),
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: IconButton(
+                              icon: Icon(Icons.cancel, color: Colors.red),
+                              onPressed: () {
+                                setState(() {
+                                  _pickedFile =
+                                      null; // Remove the image preview
+                                  isButtonDisabled =
+                                      textController.text.isEmpty;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: TextField(
@@ -144,22 +174,25 @@ class _ChatPageState extends State<ChatPage> {
                               onPressed: isButtonDisabled
                                   ? null
                                   : () {
+                                      // Send the message with imageUrl if available
                                       messages.add({
                                         Kmessage: textController.text,
                                         KcreatedAt: DateTime.now(),
                                         'id': email,
                                         KImageUrl: imageUrl,
                                       });
+
+                                      // Clear after sending the message
                                       textController.clear();
                                       setState(() {
-                                        imageUrl =
-                                            ''; // Reset the imageUrl after sending the message
+                                        _pickedFile = null;
+                                        imageUrl = ''; // Reset the image URL
                                         isButtonDisabled =
                                             true; // Disable the button again
                                       });
                                     },
                               icon: Icon(Icons.send),
-                              color: const Color.fromARGB(255, 0, 104, 189),
+                              color: KprimaryColor,
                             ),
                             SizedBox(width: 5),
                           ],
