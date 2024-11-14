@@ -28,7 +28,9 @@ class _LoginPageState extends State<LoginPage> {
       inAsyncCall: isLoading,
       child: Scaffold(
         backgroundColor: KprimaryColor,
-        appBar: AppBar(),
+        appBar: AppBar(
+          backgroundColor: KprimaryColor,
+        ),
         body: Form(
           key: formKey,
           child: ListView(
@@ -42,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const Center(
                 child: Text(
-                  "Scholar Chat",
+                  "Quick Chat",
                   style: TextStyle(
                       fontSize: 26,
                       color: Colors.white,

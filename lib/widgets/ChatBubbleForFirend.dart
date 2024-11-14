@@ -12,22 +12,55 @@ class ChatBubbleForFriend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DateTime newDate = messageModel.date.toDate();
+    // Get the hours and minutes
+    int hours = newDate.hour;
+    int minutes = newDate.minute;
+
+    // Format the result
+    String formattedTime =
+        '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        padding: EdgeInsets.all(16),
-        decoration: const BoxDecoration(
+        padding: messageModel.message.isEmpty ? null : EdgeInsets.all(16),
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.only(
               topLeft: Radius.circular(27),
               topRight: Radius.circular(27),
               bottomRight: Radius.circular(27)),
-          color: Colors.green,
+          color: messageModel.message.isEmpty
+              ? Colors.black
+              : const Color.fromARGB(255, 9, 93, 20),
         ),
-        child: Text(
-          messageModel.message,
-          style: TextStyle(color: Colors.white),
-        ),
+        child: messageModel.message.isEmpty
+            ? messageModel.imageFileUrl.isNotEmpty
+                ? Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: Image.network(
+                          messageModel.imageFileUrl,
+                          width: 250,
+                        ),
+                      ),
+                    ],
+                  )
+                : Container()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    messageModel.message,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Text(
+                    '${formattedTime}',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
       ),
     );
   }

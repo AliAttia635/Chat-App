@@ -12,6 +12,14 @@ class CustomChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    DateTime newDate = messageModel.date.toDate();
+    // Get the hours and minutes
+    int hours = newDate.hour;
+    int minutes = newDate.minute;
+
+    // Format the result
+    String formattedTime =
+        '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
@@ -26,17 +34,30 @@ class CustomChatBubble extends StatelessWidget {
         ),
         child: messageModel.message.isEmpty
             ? messageModel.imageFileUrl.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Image.network(
-                      messageModel.imageFileUrl,
-                      width: 250,
-                    ),
+                ? Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: Image.network(
+                          messageModel.imageFileUrl,
+                          width: 250,
+                        ),
+                      ),
+                    ],
                   )
                 : Container()
-            : Text(
-                messageModel.message,
-                style: TextStyle(color: Colors.white),
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    messageModel.message,
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  Text(
+                    '${formattedTime}',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
               ),
       ),
     );

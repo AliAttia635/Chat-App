@@ -55,19 +55,6 @@ class _ChatPageState extends State<ChatPage> {
             _pickedFile == null; // Update button state
       });
 
-      // If an image is selected, upload it now
-      if (_pickedFile != null) {
-        String uniqueImageFileName =
-            DateTime.now().microsecondsSinceEpoch.toString();
-        Reference referenceRoot = FirebaseStorage.instance.ref();
-        Reference referenceDirImages = referenceRoot.child('images');
-        Reference referenceImageToUpload =
-            referenceDirImages.child(uniqueImageFileName);
-
-        await referenceImageToUpload.putFile(_pickedFile!);
-        imageUrl = await referenceImageToUpload.getDownloadURL();
-      }
-
       // If you want to upload the image later after pressing the send button, move the upload logic to the send button's onPressed
     } catch (e) {
       log(e.toString());
@@ -81,11 +68,9 @@ class _ChatPageState extends State<ChatPage> {
         stream: messages.orderBy(KcreatedAt, descending: true).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            List<MessageModel> messagesList = [];
-            for (int i = 0; i < snapshot.data!.docs.length; i++) {
-              // search 3la el 7eta deh {MessageModel.fromJson} ya3ny leh ba3melaha be tareka deh bdal ma aktb "snapshot.data!.docs[i]" 3la tol
-              messagesList.add(MessageModel.fromJson(snapshot.data!.docs[i]));
-            }
+            List<MessageModel> messagesList = snapshot.data!.docs
+                .map((doc) => MessageModel.fromJson(doc))
+                .toList();
 
             return Scaffold(
               appBar: AppBar(
@@ -94,7 +79,8 @@ class _ChatPageState extends State<ChatPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(scholarImage, height: 60),
-                    Text("Scholar Chat", style: TextStyle(fontSize: 19)),
+                    Text("Chat",
+                        style: TextStyle(fontSize: 19, color: Colors.white)),
                   ],
                 ),
                 backgroundColor: KprimaryColor,
@@ -124,7 +110,7 @@ class _ChatPageState extends State<ChatPage> {
                           Image.file(
                             _pickedFile!,
                             height: 150,
-                            width: 250,
+                            width: 150,
                             fit: BoxFit.cover,
                           ),
                           Positioned(
@@ -167,10 +153,31 @@ class _ChatPageState extends State<ChatPage> {
                               icon:
                                   Icon(Icons.attach_file, color: KprimaryColor),
                             ),
+                            SizedBox(width: 5),
                             IconButton(
                               onPressed: isButtonDisabled
                                   ? null
-                                  : () {
+                                  : () async {
+                                      // If an image is selected, upload it now
+                                      if (_pickedFile != null) {
+                                        String uniqueImageFileName =
+                                            DateTime.now()
+                                                .microsecondsSinceEpoch
+                                                .toString();
+                                        Reference referenceRoot =
+                                            FirebaseStorage.instance.ref();
+                                        Reference referenceDirImages =
+                                            referenceRoot.child('images');
+                                        Reference referenceImageToUpload =
+                                            referenceDirImages
+                                                .child(uniqueImageFileName);
+
+                                        await referenceImageToUpload
+                                            .putFile(_pickedFile!);
+                                        imageUrl = await referenceImageToUpload
+                                            .getDownloadURL();
+                                      }
+
                                       // Send the message with imageUrl if available
                                       messages.add({
                                         Kmessage: textController.text,
@@ -189,9 +196,8 @@ class _ChatPageState extends State<ChatPage> {
                                       });
                                     },
                               icon: Icon(Icons.send),
-                              color: KprimaryColor,
+                              color: Colors.blue,
                             ),
-                            SizedBox(width: 5),
                           ],
                         ),
                         enabledBorder: OutlineInputBorder(

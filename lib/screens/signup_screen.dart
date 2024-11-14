@@ -32,6 +32,7 @@ class _SignUpPageState extends State<SignUpPage> {
         backgroundColor: Color(0xff2b475E),
         appBar: AppBar(
           automaticallyImplyLeading: false,
+          backgroundColor: KprimaryColor,
         ),
         body: Form(
           key: formKey,
@@ -46,7 +47,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
               const Center(
                 child: Text(
-                  "Scholar Chat",
+                  "Quick Chat",
                   style: TextStyle(
                       fontSize: 26,
                       color: Colors.white,
