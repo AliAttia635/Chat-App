@@ -2,12 +2,14 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:chatapp/constats/constant.dart';
+import 'package:chatapp/cubit/chat_cubit.dart';
 import 'package:chatapp/models/message_model.dart';
 import 'package:chatapp/widgets/ChatBubble.dart';
 import 'package:chatapp/widgets/ChatBubbleForFirend.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ChatPage extends StatefulWidget {
@@ -31,16 +33,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
-
-    // Add a listener to the textController to monitor changes
-    textController.addListener(() {
-      setState(() {
-        // Enable/Disable button based on the text input and image status
-        isButtonDisabled = textController.text.isEmpty &&
-            imageUrl.isEmpty &&
-            _pickedFile == null;
-      });
-    });
+    BlocProvider.of<ChatCubit>(context).loadMessages();
   }
 
   void pickImage() async {
@@ -64,163 +57,104 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     var email = ModalRoute.of(context)!.settings.arguments;
-    return StreamBuilder<QuerySnapshot>(
-        stream: messages.orderBy(KcreatedAt, descending: true).snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            List<MessageModel> messagesList = snapshot.data!.docs
-                .map((doc) => MessageModel.fromJson(doc))
-                .toList();
-
-            return Scaffold(
-              appBar: AppBar(
-                automaticallyImplyLeading: false,
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(scholarImage, height: 60),
-                    Text("Chat",
-                        style: TextStyle(fontSize: 19, color: Colors.white)),
-                  ],
-                ),
-                backgroundColor: KprimaryColor,
-                centerTitle: true,
-              ),
-              body: Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      reverse: true,
-                      controller: _controller,
-                      itemCount: messagesList.length,
-                      itemBuilder: (context, index) {
-                        return messagesList[index].id == email
+    ChatCubit myCubit = BlocProvider.of<ChatCubit>(context);
+    return Scaffold(
+      appBar: AppBar(),
+      body: BlocBuilder<ChatCubit, ChatState>(
+        builder: (context, state) {
+          if (state is ChatLoading) {
+            return Center(
+              child: Text("Chats Loading"),
+            );
+          } else if (state is ChatLoaded) {
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                      itemCount: myCubit.messagesList!.length,
+                      itemBuilder: (contex, index) {
+                        return myCubit.messagesList![index].id == email
                             ? CustomChatBubble(
-                                messageModel: messagesList[index])
+                                messageModel: myCubit.messagesList![index])
                             : ChatBubbleForFriend(
-                                messageModel: messagesList[index]);
-                      },
+                                messageModel: myCubit.messagesList![index]);
+                      }),
+                ),
+                if (_pickedFile != null)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Stack(
+                      children: [
+                        Image.file(
+                          _pickedFile!,
+                          height: 150,
+                          width: 150,
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: IconButton(
+                            icon: Icon(Icons.cancel, color: Colors.red),
+                            onPressed: () {
+                              setState(() {
+                                _pickedFile = null; // Remove the image preview
+                                isButtonDisabled = textController.text.isEmpty;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  if (_pickedFile != null)
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Stack(
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: textController,
+                    onSubmitted: (data) {
+                      textController.clear();
+                    },
+                    decoration: InputDecoration(
+                      hintText: "Send Message",
+                      suffixIcon: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Image.file(
-                            _pickedFile!,
-                            height: 150,
-                            width: 150,
-                            fit: BoxFit.cover,
+                          IconButton(
+                            onPressed: pickImage,
+                            icon: Icon(Icons.attach_file, color: KprimaryColor),
                           ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: IconButton(
-                              icon: Icon(Icons.cancel, color: Colors.red),
-                              onPressed: () {
-                                setState(() {
-                                  _pickedFile =
-                                      null; // Remove the image preview
-                                  isButtonDisabled =
-                                      textController.text.isEmpty;
-                                });
-                              },
-                            ),
+                          SizedBox(width: 5),
+                          IconButton(
+                            onPressed: () {
+                              myCubit.sendMessage(
+                                  _pickedFile, imageUrl, textController, email);
+                              // Clear after sending the message
+                            },
+                            icon: Icon(Icons.send),
+                            color: Colors.blue,
                           ),
                         ],
                       ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextField(
-                      controller: textController,
-                      onSubmitted: (data) {
-                        textController.clear();
-                        _controller.animateTo(
-                          0,
-                          duration: Duration(seconds: 2),
-                          curve: Curves.fastOutSlowIn,
-                        );
-                      },
-                      decoration: InputDecoration(
-                        hintText: "Send Message",
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: pickImage,
-                              icon:
-                                  Icon(Icons.attach_file, color: KprimaryColor),
-                            ),
-                            SizedBox(width: 5),
-                            IconButton(
-                              onPressed: isButtonDisabled
-                                  ? null
-                                  : () async {
-                                      // If an image is selected, upload it now
-                                      if (_pickedFile != null) {
-                                        String uniqueImageFileName =
-                                            DateTime.now()
-                                                .microsecondsSinceEpoch
-                                                .toString();
-                                        Reference referenceRoot =
-                                            FirebaseStorage.instance.ref();
-                                        Reference referenceDirImages =
-                                            referenceRoot.child('images');
-                                        Reference referenceImageToUpload =
-                                            referenceDirImages
-                                                .child(uniqueImageFileName);
-
-                                        await referenceImageToUpload
-                                            .putFile(_pickedFile!);
-                                        imageUrl = await referenceImageToUpload
-                                            .getDownloadURL();
-                                      }
-
-                                      // Send the message with imageUrl if available
-                                      messages.add({
-                                        Kmessage: textController.text,
-                                        KcreatedAt: DateTime.now(),
-                                        'id': email,
-                                        KImageUrl: imageUrl,
-                                      });
-
-                                      // Clear after sending the message
-                                      textController.clear();
-                                      setState(() {
-                                        _pickedFile = null;
-                                        imageUrl = ''; // Reset the image URL
-                                        isButtonDisabled =
-                                            true; // Disable the button again
-                                      });
-                                    },
-                              icon: Icon(Icons.send),
-                              color: Colors.blue,
-                            ),
-                          ],
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.black),
-                        ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.black),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.black),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             );
           } else {
-            return Scaffold(
-              body: Center(
-                child: Text("loading....", style: TextStyle(fontSize: 24)),
-              ),
+            return Center(
+              child: Text("Opps Error "),
             );
           }
-        });
+        },
+      ),
+    );
   }
 }
