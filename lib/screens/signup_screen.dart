@@ -23,7 +23,7 @@ class SignUpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthCubit, AuthState>(
+    return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is SignUpFailed) {
           if (state.errorMessage == 'weak-password') {
@@ -37,8 +37,8 @@ class SignUpPage extends StatelessWidget {
           Navigator.pushNamed(context, ChatPage.id, arguments: email);
         }
       },
-      child: ModalProgressHUD(
-        inAsyncCall: false,
+      builder: (context, state) => ModalProgressHUD(
+        inAsyncCall: state is SignUpLoading,
         child: Scaffold(
           backgroundColor: Color(0xff2b475E),
           appBar: AppBar(
