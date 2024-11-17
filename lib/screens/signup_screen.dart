@@ -1,10 +1,12 @@
 import 'package:chatapp/constats/constant.dart';
+import 'package:chatapp/cubit/auth_cubit/auth_cubit.dart';
 import 'package:chatapp/helpers/show_Snack_Bar.dart';
 import 'package:chatapp/screens/chat_screen.dart';
 import 'package:chatapp/widgets/Button.dart';
 import 'package:chatapp/widgets/TextField.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -96,25 +98,8 @@ class _SignUpPageState extends State<SignUpPage> {
                             text: "Sign Up",
                             ontap: () async {
                               if (formKey.currentState!.validate()) {
-                                try {
-                                  isLoading = true;
-                                  setState(() {});
-                                  await register_user(context);
-                                  Navigator.pushNamed(context, ChatPage.id,
-                                      arguments: email);
-                                } on FirebaseAuthException catch (e) {
-                                  if (e.code == 'weak-password') {
-                                    showSnackbar(context,
-                                        'The password provided is too weak.');
-                                  } else if (e.code == 'email-already-in-use') {
-                                    showSnackbar(context,
-                                        'The account already exists for that email.');
-                                  }
-                                } catch (e) {
-                                  showSnackbar(context, "there was an error");
-                                }
-                                isLoading = false;
-                                setState(() {});
+                                await BlocProvider.of<AuthCubit>(context)
+                                    .register_user(context, email!, password!);
                               }
                             },
                           )),

@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:chatapp/constats/constant.dart';
-import 'package:chatapp/cubit/chat_cubit.dart';
+import 'package:chatapp/cubit/chat_cubit/chat_cubit.dart';
 import 'package:chatapp/models/message_model.dart';
 import 'package:chatapp/widgets/ChatBubble.dart';
 import 'package:chatapp/widgets/ChatBubbleForFirend.dart';
@@ -59,7 +59,9 @@ class _ChatPageState extends State<ChatPage> {
     var email = ModalRoute.of(context)!.settings.arguments;
     ChatCubit myCubit = BlocProvider.of<ChatCubit>(context);
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text("Quick Chat"),
+      ),
       body: BlocBuilder<ChatCubit, ChatState>(
         builder: (context, state) {
           if (state is ChatLoading) {

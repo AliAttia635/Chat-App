@@ -1,4 +1,5 @@
 import 'package:chatapp/constats/constant.dart';
+import 'package:chatapp/cubit/auth_cubit/auth_cubit.dart';
 import 'package:chatapp/helpers/show_Snack_Bar.dart';
 import 'package:chatapp/screens/Signup_screen.dart';
 import 'package:chatapp/screens/chat_screen.dart';
@@ -6,6 +7,7 @@ import 'package:chatapp/widgets/Button.dart';
 import 'package:chatapp/widgets/TextField.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 class LoginPage extends StatefulWidget {
@@ -93,26 +95,8 @@ class _LoginPageState extends State<LoginPage> {
                             text: 'Sign In',
                             ontap: () async {
                               if (formKey.currentState!.validate()) {
-                                try {
-                                  isLoading = true;
-                                  setState(() {});
-                                  await login_User(context);
-                                  Navigator.pushNamed(context, ChatPage.id,
-                                      arguments: email);
-                                } on FirebaseAuthException catch (ex) {
-                                  if (ex.code == 'user-not-found') {
-                                    showSnackbar(context,
-                                        'No user found for that email.');
-                                  } else if (ex.code == 'wrong-password') {
-                                    showSnackbar(context,
-                                        'Wrong password provided for that user.');
-                                  }
-                                } catch (e) {
-                                  print(e);
-                                  showSnackbar(context, "there was an error");
-                                }
-                                isLoading = false;
-                                setState(() {});
+                                await BlocProvider.of<AuthCubit>(context)
+                                    .login_User(context, email!, password!);
                               }
                             },
                           )),
