@@ -9,15 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
-class SignUpPage extends StatefulWidget {
+class SignUpPage extends StatelessWidget {
   SignUpPage({super.key});
   static String id = 'signupPage';
 
-  @override
-  State<SignUpPage> createState() => _SignUpPageState();
-}
-
-class _SignUpPageState extends State<SignUpPage> {
   String? email;
 
   String? password;
@@ -28,7 +23,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AuthCubit, AuthState>(
+    return BlocListener<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is SignUpFailed) {
           if (state.errorMessage == 'weak-password') {
@@ -38,22 +33,13 @@ class _SignUpPageState extends State<SignUpPage> {
           } else {
             showSnackbar(context, "there was an error, please try again");
           }
+        } else if (state is SignUpSuccess) {
+          Navigator.pushNamed(context, ChatPage.id, arguments: email);
         }
       },
-      builder: (context, state) {
-        if (state is SignUpLoading) {
-          return Scaffold(
-            backgroundColor: KprimaryColor,
-            appBar: AppBar(
-              backgroundColor: KprimaryColor,
-            ),
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        return Scaffold(
+      child: ModalProgressHUD(
+        inAsyncCall: false,
+        child: Scaffold(
           backgroundColor: Color(0xff2b475E),
           appBar: AppBar(
             automaticallyImplyLeading: false,
@@ -122,8 +108,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ontap: () async {
                                 if (formKey.currentState!.validate()) {
                                   await BlocProvider.of<AuthCubit>(context)
-                                      .register_user(
-                                          context, email!, password!);
+                                      .register_user(email!, password!);
                                 }
                               },
                             )),
@@ -146,8 +131,8 @@ class _SignUpPageState extends State<SignUpPage> {
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

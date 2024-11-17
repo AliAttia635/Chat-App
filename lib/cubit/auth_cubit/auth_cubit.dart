@@ -12,8 +12,7 @@ part 'auth_state.dart';
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit() : super(LogInInitial());
 
-  Future<void> login_User(
-      BuildContext context, String email, String password) async {
+  Future<void> login_User(String email, String password) async {
     var auth = FirebaseAuth.instance;
     emit(LogInLoading());
     try {
@@ -28,15 +27,13 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  Future<void> register_user(
-      BuildContext context, String email, String password) async {
+  Future<void> register_user(String email, String password) async {
     var auth = FirebaseAuth.instance;
     emit(SignUpLoading());
     try {
       UserCredential user = await auth.createUserWithEmailAndPassword(
           email: email!, password: password!);
       emit(SignUpSuccess());
-      Navigator.pushNamed(context, ChatPage.id, arguments: email);
     } on FirebaseAuthException catch (ex) {
       emit(SignUpFailed(errorMessage: ex.code));
     } catch (e) {

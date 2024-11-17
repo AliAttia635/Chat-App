@@ -22,34 +22,21 @@ class LoginPage extends StatelessWidget {
     String? email;
 
     String? password;
-    return BlocConsumer<AuthCubit, AuthState>(
-      listener: (context, state) {
-        if (state is LogInSuccess) {
-          Navigator.pushNamed(context, ChatPage.id, arguments: email);
-        } else if (state is LogInFailed) {
-          if (state.errorMessage == 'user-not-found') {
-            showSnackbar(context, 'No user found for that email.');
-          } else if (state.errorMessage == 'wrong-password') {
-            showSnackbar(context, 'Wrong password provided for that user.');
-          } else {
-            showSnackbar(context, "there was an error, please try again");
+    return BlocListener<AuthCubit, AuthState>(
+        listener: (context, state) {
+          if (state is LogInSuccess) {
+            Navigator.pushNamed(context, ChatPage.id, arguments: email);
+          } else if (state is LogInFailed) {
+            if (state.errorMessage == 'user-not-found') {
+              showSnackbar(context, 'No user found for that email.');
+            } else if (state.errorMessage == 'wrong-password') {
+              showSnackbar(context, 'Wrong password provided for that user.');
+            } else {
+              showSnackbar(context, "there was an error, please try again");
+            }
           }
-        }
-      },
-      builder: (context, state) {
-        if (state is LogInLoading) {
-          return Scaffold(
-            backgroundColor: KprimaryColor,
-            appBar: AppBar(
-              backgroundColor: KprimaryColor,
-            ),
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        return Scaffold(
+        },
+        child: Scaffold(
           backgroundColor: KprimaryColor,
           appBar: AppBar(
             backgroundColor: KprimaryColor,
@@ -117,7 +104,7 @@ class LoginPage extends StatelessWidget {
                               ontap: () async {
                                 if (formKey.currentState!.validate()) {
                                   await BlocProvider.of<AuthCubit>(context)
-                                      .login_User(context, email!, password!);
+                                      .login_User(email!, password!);
                                 }
                               },
                             )),
@@ -141,8 +128,6 @@ class LoginPage extends StatelessWidget {
               ],
             ),
           ),
-        );
-      },
-    );
+        ));
   }
 }
