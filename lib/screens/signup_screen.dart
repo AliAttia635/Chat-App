@@ -28,101 +28,126 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ModalProgressHUD(
-      inAsyncCall: isLoading,
-      child: Scaffold(
-        backgroundColor: Color(0xff2b475E),
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: KprimaryColor,
-        ),
-        body: Form(
-          key: formKey,
-          child: ListView(
-            children: [
-              const SizedBox(
-                height: 100,
-              ),
-              Image.asset(
-                scholarImage,
-                height: 100,
-              ),
-              const Center(
-                child: Text(
-                  "Quick Chat",
-                  style: TextStyle(
-                      fontSize: 26,
-                      color: Colors.white,
-                      fontFamily: 'Pacifico'),
-                ),
-              ),
-              const SizedBox(
-                height: 120,
-              ),
-              Container(
-                  alignment: Alignment.centerLeft,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(left: 6),
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Sign Up",
-                          style: TextStyle(fontSize: 24, color: Colors.white),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(6.0),
-                        child: CustomFormTextField(
-                          hint: "Email",
-                          onChange: (data) {
-                            email = data;
-                          },
-                          isPassword: false,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(6.0),
-                        child: CustomFormTextField(
-                          hint: "Password",
-                          onChange: (data) {
-                            password = data;
-                          },
-                          isPassword: true,
-                        ),
-                      ),
-                      Padding(
-                          padding: const EdgeInsets.all(6.0),
-                          child: CustomButton(
-                            text: "Sign Up",
-                            ontap: () async {
-                              if (formKey.currentState!.validate()) {
-                                await BlocProvider.of<AuthCubit>(context)
-                                    .register_user(context, email!, password!);
-                              }
-                            },
-                          )),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Already have an account?",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Text("   Log in",
-                                style: TextStyle(color: Colors.lightBlue)),
-                          )
-                        ],
-                      )
-                    ],
-                  ))
-            ],
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is SignUpFailed) {
+          if (state.errorMessage == 'weak-password') {
+            showSnackbar(context, 'The password provided is too weak.');
+          } else if (state.errorMessage == 'email-already-in-use') {
+            showSnackbar(context, 'The account already exists for that email.');
+          } else {
+            showSnackbar(context, "there was an error, please try again");
+          }
+        }
+      },
+      builder: (context, state) {
+        if (state is SignUpLoading) {
+          return Scaffold(
+            backgroundColor: KprimaryColor,
+            appBar: AppBar(
+              backgroundColor: KprimaryColor,
+            ),
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: Color(0xff2b475E),
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            backgroundColor: KprimaryColor,
           ),
-        ),
-      ),
+          body: Form(
+            key: formKey,
+            child: ListView(
+              children: [
+                const SizedBox(
+                  height: 100,
+                ),
+                Image.asset(
+                  scholarImage,
+                  height: 100,
+                ),
+                const Center(
+                  child: Text(
+                    "Quick Chat",
+                    style: TextStyle(
+                        fontSize: 26,
+                        color: Colors.white,
+                        fontFamily: 'Pacifico'),
+                  ),
+                ),
+                const SizedBox(
+                  height: 120,
+                ),
+                Container(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(left: 6),
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Sign Up",
+                            style: TextStyle(fontSize: 24, color: Colors.white),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(6.0),
+                          child: CustomFormTextField(
+                            hint: "Email",
+                            onChange: (data) {
+                              email = data;
+                            },
+                            isPassword: false,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(6.0),
+                          child: CustomFormTextField(
+                            hint: "Password",
+                            onChange: (data) {
+                              password = data;
+                            },
+                            isPassword: true,
+                          ),
+                        ),
+                        Padding(
+                            padding: const EdgeInsets.all(6.0),
+                            child: CustomButton(
+                              text: "Sign Up",
+                              ontap: () async {
+                                if (formKey.currentState!.validate()) {
+                                  await BlocProvider.of<AuthCubit>(context)
+                                      .register_user(
+                                          context, email!, password!);
+                                }
+                              },
+                            )),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Already have an account?",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Text("   Log in",
+                                  style: TextStyle(color: Colors.lightBlue)),
+                            )
+                          ],
+                        )
+                      ],
+                    ))
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
