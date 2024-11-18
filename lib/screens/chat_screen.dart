@@ -12,63 +12,29 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ChatPage extends StatefulWidget {
+class ChatPage extends StatelessWidget {
   ChatPage({super.key});
   static String id = "ChatPage";
 
-  @override
-  State<ChatPage> createState() => _ChatPageState();
-}
+  // final _controller = ScrollController();
 
-class _ChatPageState extends State<ChatPage> {
-  final _controller = ScrollController();
-  File? _pickedFile;
-  String imageUrl = ''; // Initialize imageUrl as an empty string
   TextEditingController textController = TextEditingController();
-  CollectionReference messages =
-      FirebaseFirestore.instance.collection(KcollectionMessages);
-
-  bool isButtonDisabled = true;
-
-  @override
-  void initState() {
-    super.initState();
-    BlocProvider.of<ChatCubit>(context).loadMessages();
-  }
-
-  void pickImage() async {
-    try {
-      XFile? pickedFile =
-          await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (pickedFile == null) return;
-
-      setState(() {
-        _pickedFile = File(pickedFile.path); // Set the picked file for preview
-        isButtonDisabled = textController.text.isEmpty &&
-            _pickedFile == null; // Update button state
-      });
-
-      // If you want to upload the image later after pressing the send button, move the upload logic to the send button's onPressed
-    } catch (e) {
-      log(e.toString());
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     var email = ModalRoute.of(context)!.settings.arguments;
     ChatCubit myCubit = BlocProvider.of<ChatCubit>(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Quick Chat"),
-      ),
-      body: BlocBuilder<ChatCubit, ChatState>(
-        builder: (context, state) {
-          if (state is ChatLoading) {
-            return Center(
-              child: Text("Chats Loading"),
-            );
-          } else if (state is ChatLoaded) {
+        appBar: AppBar(
+          title: Text("Quick Chat"),
+        ),
+        body: BlocBuilder<ChatCubit, ChatState>(
+          builder: (context, state) {
+            if (state is ChatLoading) {
+              return Center(
+                child: Text("Chats Loading"),
+              );
+            }
             return Column(
               children: [
                 Expanded(
@@ -82,13 +48,14 @@ class _ChatPageState extends State<ChatPage> {
                                 messageModel: myCubit.messagesList![index]);
                       }),
                 ),
-                if (_pickedFile != null)
+                if (state
+                    is ChatImageSelected) // Display image preview if an image is picked
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Stack(
                       children: [
                         Image.file(
-                          _pickedFile!,
+                          state.imageFile,
                           height: 150,
                           width: 150,
                           fit: BoxFit.cover,
@@ -99,10 +66,7 @@ class _ChatPageState extends State<ChatPage> {
                           child: IconButton(
                             icon: Icon(Icons.cancel, color: Colors.red),
                             onPressed: () {
-                              setState(() {
-                                _pickedFile = null; // Remove the image preview
-                                isButtonDisabled = textController.text.isEmpty;
-                              });
+                              myCubit.clearImage(); // Clear image state
                             },
                           ),
                         ),
@@ -122,18 +86,18 @@ class _ChatPageState extends State<ChatPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            onPressed: pickImage,
+                            onPressed: myCubit
+                                .pickImage, // Use cubit's method to pick image
                             icon: Icon(Icons.attach_file, color: KprimaryColor),
                           ),
                           SizedBox(width: 5),
                           IconButton(
                             onPressed: () {
-                              myCubit.sendMessage(
-                                  _pickedFile, imageUrl, textController, email);
-                              // Clear after sending the message
+                              myCubit.sendMessage(myCubit.pickedImage,
+                                  textController.text, email);
+                              textController.clear();
                             },
-                            icon: Icon(Icons.send),
-                            color: Colors.blue,
+                            icon: Icon(Icons.send, color: Colors.blue),
                           ),
                         ],
                       ),
@@ -150,13 +114,7 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ],
             );
-          } else {
-            return Center(
-              child: Text("Opps Error "),
-            );
-          }
-        },
-      ),
-    );
+          },
+        ));
   }
 }

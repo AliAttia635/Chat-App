@@ -1,5 +1,6 @@
 import 'package:chatapp/constats/constant.dart';
 import 'package:chatapp/cubit/auth_cubit/auth_cubit.dart';
+import 'package:chatapp/cubit/chat_cubit/chat_cubit.dart';
 import 'package:chatapp/helpers/show_Snack_Bar.dart';
 import 'package:chatapp/screens/Signup_screen.dart';
 import 'package:chatapp/screens/chat_screen.dart';
@@ -24,7 +25,9 @@ class LoginPage extends StatelessWidget {
     return BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is LogInSuccess) {
-            Navigator.pushNamed(context, ChatPage.id, arguments: email);
+            BlocProvider.of<ChatCubit>(context).getMessages();
+            Navigator.pushReplacementNamed(context, ChatPage.id,
+                arguments: email);
           } else if (state is LogInFailed) {
             if (state.errorMessage == 'user-not-found') {
               showSnackbar(context, 'No user found for that email.');

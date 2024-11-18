@@ -4,11 +4,13 @@ import 'package:chatapp/firebase_options.dart';
 import 'package:chatapp/screens/Signup_screen.dart';
 import 'package:chatapp/screens/chat_screen.dart';
 import 'package:chatapp/screens/login_screen.dart';
+import 'package:chatapp/simple_bloc_observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
+  Bloc.observer = SimpleBlocObserver();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -21,18 +23,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ChatCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ChatCubit>(
+          create: (context) => ChatCubit(),
+        ),
+        BlocProvider<AuthCubit>(
+          create: (context) => AuthCubit(),
+        ),
+      ],
       child: MaterialApp(
         routes: {
-          LoginPage.id: (context) => BlocProvider(
-                create: (context) => AuthCubit(),
-                child: LoginPage(),
-              ),
-          SignUpPage.id: (context) => BlocProvider(
-                create: (context) => AuthCubit(),
-                child: SignUpPage(),
-              ),
+          LoginPage.id: (context) => LoginPage(),
+          SignUpPage.id: (context) => SignUpPage(),
           ChatPage.id: (context) => ChatPage(),
         },
         debugShowCheckedModeBanner: false,
